@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PhotoItem, ProcessingSettings, IndividualCrop } from '../types';
-import { calculateTargetPixels, renderToCanvas } from '../utils/imageProcessor';
+import { calculateTargetPixels, renderToCanvas, loadPhotoSourceImage } from '../utils/imageProcessor';
 import { X, ZoomIn, Move, RotateCw, Check, RotateCcw } from 'lucide-react';
 
 interface CropAdjusterModalProps {
@@ -31,12 +31,10 @@ export const CropAdjusterModal: React.FC<CropAdjusterModalProps> = ({
   // Render preview on canvas when parameters change
   useEffect(() => {
     if (!isOpen) return;
+    let isCancelled = false;
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = photo.originalUrl;
-    img.onload = () => {
-      if (!canvasRef.current) return;
+    loadPhotoSourceImage(photo, settings).then(({ img, isSvg }) => {
+      if (isCancelled || !canvasRef.current) return;
       const previewCanvas = canvasRef.current;
       previewCanvas.width = widthPx;
       previewCanvas.height = heightPx;
@@ -46,7 +44,8 @@ export const CropAdjusterModal: React.FC<CropAdjusterModalProps> = ({
         widthPx,
         heightPx,
         settings,
-        { zoom, offsetX, offsetY, rotation }
+        { zoom, offsetX, offsetY, rotation },
+        isSvg
       );
 
       const ctx = previewCanvas.getContext('2d');
@@ -54,6 +53,10 @@ export const CropAdjusterModal: React.FC<CropAdjusterModalProps> = ({
         ctx.clearRect(0, 0, widthPx, heightPx);
         ctx.drawImage(rendered, 0, 0);
       }
+    });
+
+    return () => {
+      isCancelled = true;
     };
   }, [isOpen, photo, settings, zoom, offsetX, offsetY, rotation, widthPx, heightPx]);
 

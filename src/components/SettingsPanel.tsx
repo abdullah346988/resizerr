@@ -36,7 +36,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onReset,
   disabled = false
 }) => {
-  const [isCustomPreset, setIsCustomPreset] = useState(settings.presetId === 'custom');
+  const isCustomPreset = settings.presetId === 'custom';
   const [customKbInput, setCustomKbInput] = useState<string>(
     settings.targetKb && !TARGET_KB_OPTIONS.some((o) => o.value === settings.targetKb)
       ? String(settings.targetKb)
@@ -49,15 +49,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   // Handle preset change
   const handlePresetSelect = (presetId: string) => {
     if (presetId === 'custom') {
-      setIsCustomPreset(true);
       onChange({ ...settings, presetId: 'custom' });
       return;
     }
 
     const preset = PASSPORT_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
-
-    setIsCustomPreset(false);
 
     let w = preset.widthMm;
     let h = preset.heightMm;
@@ -202,7 +199,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   if (!isNaN(val) && val > 0) {
-                    setIsCustomPreset(true);
                     onChange({ ...settings, width: val, presetId: 'custom' });
                   }
                 }}
@@ -223,7 +219,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   if (!isNaN(val) && val > 0) {
-                    setIsCustomPreset(true);
                     onChange({ ...settings, height: val, presetId: 'custom' });
                   }
                 }}
@@ -360,8 +355,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               },
               {
                 mode: 'fit-background' as CropMode,
-                title: 'Fit with Background',
-                desc: 'No crop, letterbox with chosen color'
+                title: 'Fit (No Crop)',
+                desc: 'Letterbox to fit entire image without cropping'
               },
               {
                 mode: 'stretch' as CropMode,
@@ -387,53 +382,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         </div>
 
-        {/* SECTION 5: BACKGROUND COLOR */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-            Background Color
-          </label>
-          <div className="flex items-center flex-wrap gap-2">
-            {[
-              { label: 'White', color: '#ffffff', border: true },
-              { label: 'Light Blue', color: '#e8f2fe', border: false },
-              { label: 'Light Grey', color: '#f3f4f6', border: false },
-              { label: 'Original / None', color: 'transparent', border: true }
-            ].map((b) => (
-              <button
-                key={b.label}
-                type="button"
-                onClick={() => onChange({ ...settings, backgroundColor: b.color })}
-                disabled={disabled}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer ${
-                  settings.backgroundColor === b.color
-                    ? 'border-blue-600 bg-blue-50 text-blue-900 ring-1 ring-blue-600'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span
-                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0"
-                  style={{ backgroundColor: b.color === 'transparent' ? '#ffffff' : b.color }}
-                />
-                <span>{b.label}</span>
-              </button>
-            ))}
-
-            {/* Custom color picker */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200 bg-white">
-              <input
-                type="color"
-                value={settings.backgroundColor === 'transparent' ? '#ffffff' : settings.backgroundColor}
-                onChange={(e) => onChange({ ...settings, backgroundColor: e.target.value })}
-                disabled={disabled}
-                className="w-5 h-5 rounded cursor-pointer border-0 p-0"
-                title="Choose custom background color"
-              />
-              <span className="text-xs text-slate-600">Custom</span>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 6: ADVANCED / OUTPUT FORMAT */}
+        {/* SECTION 5: ADVANCED / OUTPUT FORMAT */}
         <div className="pt-2 border-t border-slate-100">
           <button
             type="button"

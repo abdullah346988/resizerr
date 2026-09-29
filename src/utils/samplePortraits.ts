@@ -1,9 +1,61 @@
-import { PhotoItem } from '../types';
+export function createSvgPortrait(s: {
+  bg: string;
+  skin: string;
+  hair: string;
+  shirt: string;
+  eyes: string;
+  glasses: boolean;
+}): string {
+  const glassesSvg = s.glasses
+    ? `<rect x="325" y="360" width="50" height="32" rx="4" fill="none" stroke="#334155" stroke-width="4"/>
+       <rect x="425" y="360" width="50" height="32" rx="4" fill="none" stroke="#334155" stroke-width="4"/>
+       <line x1="375" y1="376" x2="425" y2="376" stroke="#334155" stroke-width="4"/>`
+    : '';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <!-- Passport Photo Background -->
+  <rect id="bg" class="passport-bg" width="100%" height="100%" fill="${s.bg}"/>
+  
+  <!-- Torso / Shoulders -->
+  <ellipse cx="400" cy="1040" rx="352" ry="420" fill="${s.shirt}"/>
+  
+  <!-- Collar -->
+  <polygon points="330,680 400,770 470,680" fill="#ffffff"/>
+  
+  <!-- Neck -->
+  <rect x="345" y="520" width="110" height="160" fill="${s.skin}"/>
+  <ellipse cx="400" cy="550" rx="60" ry="20" fill="rgba(0,0,0,0.12)"/>
+  
+  <!-- Face / Head -->
+  <ellipse cx="400" cy="400" rx="150" ry="190" fill="${s.skin}"/>
+  
+  <!-- Hair -->
+  <path d="M 235,400 A 165,165 0 1,1 565,400 Q 500,260 400,260 Q 300,260 235,400 Z" fill="${s.hair}"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="350" cy="390" rx="18" ry="10" fill="#ffffff"/>
+  <ellipse cx="450" cy="390" rx="18" ry="10" fill="#ffffff"/>
+  <circle cx="350" cy="390" r="8" fill="${s.eyes}"/>
+  <circle cx="450" cy="390" r="8" fill="${s.eyes}"/>
+  
+  <!-- Eyebrows -->
+  <path d="M 330,365 Q 350,355 370,365" stroke="${s.hair}" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M 430,365 Q 450,355 470,365" stroke="${s.hair}" stroke-width="5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Nose -->
+  <path d="M 400,380 L 400,450 L 388,465" stroke="rgba(0,0,0,0.25)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Mouth -->
+  <line x1="368" y1="515" x2="432" y2="515" stroke="#9f1239" stroke-width="4" stroke-linecap="round"/>
+  
+  ${glassesSvg}
+</svg>`;
+}
 
 export function createSamplePortraitFiles(): Promise<File[]> {
   const samples = [
     {
-      name: 'applicant_alex_chen.jpg',
+      name: 'applicant_alex_chen.svg',
       bg: '#e8f0fe',
       skin: '#e0a97a',
       hair: '#1e293b',
@@ -13,7 +65,7 @@ export function createSamplePortraitFiles(): Promise<File[]> {
       title: 'Alex Chen'
     },
     {
-      name: 'applicant_sarah_miller.jpg',
+      name: 'applicant_sarah_miller.svg',
       bg: '#f8fafc',
       skin: '#fbd7b2',
       hair: '#854d0e',
@@ -23,7 +75,7 @@ export function createSamplePortraitFiles(): Promise<File[]> {
       title: 'Sarah Miller'
     },
     {
-      name: 'applicant_marcus_adebayo.jpg',
+      name: 'applicant_marcus_adebayo.svg',
       bg: '#f1f5f9',
       skin: '#78350f',
       hair: '#0f172a',
@@ -33,7 +85,7 @@ export function createSamplePortraitFiles(): Promise<File[]> {
       title: 'Marcus Adebayo'
     },
     {
-      name: 'applicant_priya_patel.jpg',
+      name: 'applicant_priya_patel.svg',
       bg: '#f0fdf4',
       skin: '#c28859',
       hair: '#171717',
@@ -44,138 +96,10 @@ export function createSamplePortraitFiles(): Promise<File[]> {
     }
   ];
 
-  return Promise.all(
+  return Promise.resolve(
     samples.map((s) => {
-      return new Promise<File>((resolve) => {
-        const width = 800;
-        const height = 1000;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d')!;
-
-        // Background
-        ctx.fillStyle = s.bg;
-        ctx.fillRect(0, 0, width, height);
-
-        // Soft vignette / gradient for natural photography feel
-        const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 50, width / 2, height / 2, width * 0.8);
-        bgGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
-        bgGrad.addColorStop(1, 'rgba(0,0,0,0.06)');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, width, height);
-
-        // Torso / Shoulders
-        ctx.fillStyle = s.shirt;
-        ctx.beginPath();
-        ctx.ellipse(width / 2, height + 40, width * 0.44, height * 0.42, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Collar
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(width / 2 - 70, height * 0.68);
-        ctx.lineTo(width / 2, height * 0.77);
-        ctx.lineTo(width / 2 + 70, height * 0.68);
-        ctx.closePath();
-        ctx.fill();
-
-        // Neck
-        ctx.fillStyle = s.skin;
-        ctx.beginPath();
-        ctx.rect(width / 2 - 55, height * 0.52, 110, 160);
-        ctx.fill();
-
-        // Neck shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.12)';
-        ctx.beginPath();
-        ctx.ellipse(width / 2, height * 0.55, 60, 20, 0, 0, Math.PI);
-        ctx.fill();
-
-        // Head / Face
-        ctx.fillStyle = s.skin;
-        ctx.beginPath();
-        ctx.ellipse(width / 2, height * 0.4, 150, 190, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Hair (back & top)
-        ctx.fillStyle = s.hair;
-        ctx.beginPath();
-        ctx.arc(width / 2, height * 0.36, 165, Math.PI * 0.8, Math.PI * 2.2);
-        ctx.fill();
-
-        // Eyes
-        ctx.fillStyle = '#ffffff';
-        // Left eye
-        ctx.beginPath();
-        ctx.ellipse(width / 2 - 50, height * 0.39, 18, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Right eye
-        ctx.beginPath();
-        ctx.ellipse(width / 2 + 50, height * 0.39, 18, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pupils
-        ctx.fillStyle = s.eyes;
-        ctx.beginPath();
-        ctx.arc(width / 2 - 50, height * 0.39, 8, 0, Math.PI * 2);
-        ctx.arc(width / 2 + 50, height * 0.39, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Eyebrows
-        ctx.strokeStyle = s.hair;
-        ctx.lineWidth = 5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.arc(width / 2 - 50, height * 0.36, 22, Math.PI * 1.15, Math.PI * 1.85);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(width / 2 + 50, height * 0.36, 22, Math.PI * 1.15, Math.PI * 1.85);
-        ctx.stroke();
-
-        // Nose
-        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.moveTo(width / 2, height * 0.38);
-        ctx.lineTo(width / 2, height * 0.45);
-        ctx.lineTo(width / 2 - 12, height * 0.465);
-        ctx.stroke();
-
-        // Mouth (neutral passport expression)
-        ctx.strokeStyle = '#9f1239';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(width / 2 - 32, height * 0.515);
-        ctx.lineTo(width / 2 + 32, height * 0.515);
-        ctx.stroke();
-
-        // Glasses if enabled
-        if (s.glasses) {
-          ctx.strokeStyle = '#334155';
-          ctx.lineWidth = 4;
-          // Left frame
-          ctx.strokeRect(width / 2 - 75, height * 0.36, 50, 32);
-          // Right frame
-          ctx.strokeRect(width / 2 + 25, height * 0.36, 50, 32);
-          // Bridge
-          ctx.beginPath();
-          ctx.moveTo(width / 2 - 25, height * 0.38);
-          ctx.lineTo(width / 2 + 25, height * 0.38);
-          ctx.stroke();
-        }
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const file = new File([blob], s.name, { type: 'image/jpeg' });
-              resolve(file);
-            }
-          },
-          'image/jpeg',
-          0.92
-        );
-      });
+      const svgText = createSvgPortrait(s);
+      return new File([svgText], s.name, { type: 'image/svg+xml' });
     })
   );
 }

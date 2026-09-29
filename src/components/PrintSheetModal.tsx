@@ -33,13 +33,13 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const completedPhotos = photos.filter((p) => p.status === 'completed');
+  const availablePhotos = photos.filter((p) => p.processedUrl || p.originalUrl);
 
   const [sheetSettings, setSheetSettings] = useState<SheetSettings>({
     paperId: '4x6', // Default 4x6" is most common for home photo printers & pharmacy kiosks!
     orientation: 'portrait',
     photosMode: 'single-repeat',
-    selectedPhotoId: completedPhotos[0]?.id || photos[0]?.id,
+    selectedPhotoId: availablePhotos[0]?.id,
     repeatCount: 6,
     spacingMm: 4,
     marginMm: 8,
@@ -57,14 +57,14 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
 
   // Update selected photo if empty or not set
   useEffect(() => {
-    if (!sheetSettings.selectedPhotoId && completedPhotos.length > 0) {
-      setSheetSettings((s) => ({ ...s, selectedPhotoId: completedPhotos[0].id }));
+    if (!sheetSettings.selectedPhotoId && availablePhotos.length > 0) {
+      setSheetSettings((s) => ({ ...s, selectedPhotoId: availablePhotos[0].id }));
     }
-  }, [completedPhotos, sheetSettings.selectedPhotoId]);
+  }, [availablePhotos, sheetSettings.selectedPhotoId]);
 
   // Render sheet preview
   useEffect(() => {
-    if (!isOpen || (completedPhotos.length === 0 && photos.length === 0)) return;
+    if (!isOpen || availablePhotos.length === 0) return;
 
     let isCancelled = false;
     setIsGenerating(true);
@@ -85,7 +85,7 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [isOpen, photos, sheetSettings, processingSettings]);
+  }, [isOpen, photos, sheetSettings, processingSettings, availablePhotos.length]);
 
   if (!isOpen) return null;
 
@@ -129,15 +129,26 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
     }
   };
 
-  // Direct Browser Print
+  // Direct Browser Print via hidden iframe (clean, popup-free)
   const handleDirectPrint = async () => {
     try {
       setIsGenerating(true);
       const canvas = await renderSheetToCanvas(photos, sheetSettings, processingSettings, 300);
       const dataUrl = canvas.toDataURL('image/png');
-      const win = window.open('', '_blank');
-      if (win) {
-        win.document.write(`
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (frameDoc) {
+        frameDoc.open();
+        frameDoc.write(`
           <!DOCTYPE html>
           <html>
             <head>
@@ -149,11 +160,18 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
               </style>
             </head>
             <body>
-              <img src="${dataUrl}" onload="window.print();" />
+              <img src="${dataUrl}" />
             </body>
           </html>
         `);
-        win.document.close();
+        frameDoc.close();
+        iframe.contentWindow?.focus();
+        setTimeout(() => {
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            if (iframe.parentNode) document.body.removeChild(iframe);
+          }, 1500);
+        }, 500);
       }
     } catch (err) {
       console.error(err);
@@ -289,9 +307,9 @@ export const PrintSheetModal: React.FC<PrintSheetModalProps> = ({
                       }
                       className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800"
                     >
-                      {completedPhotos.map((p, i) => (
+                      {availablePhotos.map((p, i) => (
                         <option key={p.id} value={p.id}>
-                          #{i + 1} - {p.name}
+                          #{i + 1} - {p.name} {p.status === 'completed' ? '(Processed)' : '(Original)'}
                         </option>
                       ))}
                     </select>

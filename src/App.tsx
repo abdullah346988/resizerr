@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS: ProcessingSettings = {
   targetKb: 50, // Standard 50 KB passport target
   format: 'image/jpeg',
   jpegQuality: 0.92,
-  backgroundColor: '#ffffff',
+  backgroundColor: 'transparent',
   customDimensions: {
     mm: { width: 35, height: 45 },
     inch: { width: 2, height: 2 },
@@ -229,6 +229,8 @@ export default function App() {
       completed.forEach((photo, idx) => {
         const numStr = String(idx + 1).padStart(3, '0');
         const cleanName = photo.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const mime = photo.processedBlob?.type || settings.format;
+        const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
         const filename = `passport_${numStr}_${cleanName}.${ext}`;
         if (photo.processedBlob) {
           folder.file(filename, photo.processedBlob);
@@ -241,7 +243,7 @@ export default function App() {
         `Passport Photo Bulk Resizer Export\n` +
           `-----------------------------------\n` +
           `Dimensions: ${settings.width} × ${settings.height} ${settings.unit} (@ ${settings.dpi} DPI)\n` +
-          `Target File Size: ${settings.targetKb ? `${settings.targetKb} KB` : 'Original'}\n` +
+          `Target File Size: ${settings.targetKb ? `${settings.targetKb} KB` : 'Original Quality'}\n` +
           `Format: ${settings.format}\n` +
           `Framing Mode: ${settings.cropMode}\n` +
           `Total Photos Processed: ${completed.length}\n` +

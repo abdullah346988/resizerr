@@ -18,7 +18,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
 
   const processFiles = async (files: FileList | File[]) => {
     setErrorMessage(null);
@@ -30,7 +30,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
     Array.from(files).forEach((file) => {
       if (
         supportedTypes.includes(file.type.toLowerCase()) ||
-        /\.(jpe?g|png|webp)$/i.test(file.name)
+        /\.(jpe?g|png|webp|svg)$/i.test(file.name)
       ) {
         validFiles.push(file);
       } else {
@@ -40,7 +40,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 
     if (invalidCount > 0) {
       setErrorMessage(
-        `${invalidCount} file(s) were skipped because they are not supported image formats (JPG, PNG, WEBP only).`
+        `${invalidCount} file(s) were skipped because they are not supported image formats (JPG, PNG, WEBP, SVG only).`
       );
     }
 
@@ -140,7 +140,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg"
           onChange={handleFileInputChange}
           className="hidden"
         />

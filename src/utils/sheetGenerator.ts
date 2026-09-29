@@ -209,7 +209,7 @@ export async function renderSheetToCanvas(
 
   // Determine photo queue
   let photoQueue: (PhotoItem | null)[] = [];
-  const validPhotos = photos.filter((p) => p.status === 'completed' && (p.processedUrl || p.originalUrl));
+  const validPhotos = photos.filter((p) => p.processedUrl || p.originalUrl);
 
   if (sheetSettings.photosMode === 'single-repeat') {
     const targetPhoto = validPhotos.find((p) => p.id === sheetSettings.selectedPhotoId) || validPhotos[0];
@@ -295,7 +295,7 @@ export async function generateSheetPdf(
     compress: true
   });
 
-  const validPhotos = photos.filter((p) => p.status === 'completed' && (p.processedUrl || p.originalUrl));
+  const validPhotos = photos.filter((p) => p.processedUrl || p.originalUrl);
   let photoQueue: (PhotoItem | null)[] = [];
 
   if (sheetSettings.photosMode === 'single-repeat') {
@@ -345,7 +345,8 @@ export async function generateSheetPdf(
         const url = item.processedUrl || item.originalUrl;
         const b64 = imageCache.get(url);
         if (b64) {
-          doc.addImage(b64, 'JPEG', posX, posY, layout.photoWidthMm, layout.photoHeightMm, undefined, 'FAST');
+          const format = b64.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(b64, format, posX, posY, layout.photoWidthMm, layout.photoHeightMm, undefined, 'FAST');
         }
       }
 

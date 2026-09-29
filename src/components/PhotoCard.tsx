@@ -8,9 +8,8 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Maximize,
-  ArrowRight,
-  Sparkles
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 
 interface PhotoCardProps {
@@ -40,12 +39,8 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     const url = photo.processedUrl || URL.createObjectURL(photo.processedBlob!);
     const a = document.createElement('a');
     a.href = url;
-    const ext =
-      settings.format === 'image/png'
-        ? 'png'
-        : settings.format === 'image/webp'
-        ? 'webp'
-        : 'jpg';
+    const mime = photo.processedBlob?.type || settings.format;
+    const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
     const cleanName = photo.name.replace(/\.[^/.]+$/, '');
     a.download = `passport_${String(index + 1).padStart(3, '0')}_${cleanName}.${ext}`;
     document.body.appendChild(a);
@@ -129,42 +124,123 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
       {/* Image Preview Area */}
       <div className="p-3.5 bg-slate-50/40 grow flex flex-col justify-center">
         {isCompleted && photo.processedUrl ? (
-          <div className="grid grid-cols-2 gap-2">
-            {/* Original thumbnail */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex justify-between">
-                <span>Original</span>
-                <span>{formatFileSize(photo.originalSize)}</span>
-              </div>
-              <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-slate-200 border border-slate-200 flex items-center justify-center">
-                <img
-                  src={photo.originalUrl}
-                  alt="Original"
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute bottom-1 left-1 text-[9px] bg-slate-900/70 text-white px-1.5 py-0.5 rounded-sm">
-                  {photo.originalWidth} × {photo.originalHeight}
-                </span>
+          <div className="space-y-2">
+            {/* View Mode Switcher */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                Preview Mode
+              </span>
+              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('comparison')}
+                  className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                    activeTab === 'comparison'
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Both
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('result')}
+                  className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                    activeTab === 'result'
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Passport
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('original')}
+                  className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                    activeTab === 'original'
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Original
+                </button>
               </div>
             </div>
 
-            {/* Passport Processed Result */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider flex justify-between">
-                <span>Passport</span>
-                <span>{photo.processedSize ? formatFileSize(photo.processedSize) : ''}</span>
+            {/* Comparison Mode (Default) */}
+            {activeTab === 'comparison' && (
+              <div className="grid grid-cols-2 gap-2">
+                {/* Original thumbnail */}
+                <div className="space-y-1">
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex justify-between">
+                    <span>Original</span>
+                    <span>{formatFileSize(photo.originalSize)}</span>
+                  </div>
+                  <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-slate-200 border border-slate-200 flex items-center justify-center">
+                    <img
+                      src={photo.originalUrl}
+                      alt="Original"
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-1 left-1 text-[9px] bg-slate-900/70 text-white px-1.5 py-0.5 rounded-sm">
+                      {photo.originalWidth} × {photo.originalHeight}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Passport Processed Result */}
+                <div className="space-y-1">
+                  <div className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider flex justify-between">
+                    <span>Passport</span>
+                    <span>{photo.processedSize ? formatFileSize(photo.processedSize) : ''}</span>
+                  </div>
+                  <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-white border-2 border-blue-400 shadow-xs flex items-center justify-center">
+                    <img
+                      src={photo.processedUrl}
+                      alt="Passport Sized"
+                      className="w-full h-full object-contain"
+                    />
+                    <span className="absolute bottom-1 right-1 text-[9px] bg-blue-700/80 text-white font-mono px-1.5 py-0.5 rounded-sm">
+                      {photo.processedWidth} × {photo.processedHeight}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-white border-2 border-blue-400 shadow-xs flex items-center justify-center">
-                <img
-                  src={photo.processedUrl}
-                  alt="Passport Sized"
-                  className="w-full h-full object-contain"
-                />
-                <span className="absolute bottom-1 right-1 text-[9px] bg-blue-700/80 text-white font-mono px-1.5 py-0.5 rounded-sm">
-                  {photo.processedWidth} × {photo.processedHeight}
-                </span>
+            )}
+
+            {/* Passport Result Only */}
+            {activeTab === 'result' && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] font-semibold text-blue-700 uppercase tracking-wider">
+                  <span>Passport Photo ({photo.processedWidth} × {photo.processedHeight} px)</span>
+                  <span>{photo.processedSize ? formatFileSize(photo.processedSize) : ''}</span>
+                </div>
+                <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-slate-100 border-2 border-blue-400 shadow-xs flex items-center justify-center">
+                  <img
+                    src={photo.processedUrl}
+                    alt="Passport Result"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Original Only */}
+            {activeTab === 'original' && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <span>Original Photo ({photo.originalWidth} × {photo.originalHeight} px)</span>
+                  <span>{formatFileSize(photo.originalSize)}</span>
+                </div>
+                <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                  <img
+                    src={photo.originalUrl}
+                    alt="Original Photo"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* Pending / Single View */
@@ -228,14 +304,25 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
         </button>
 
         {isCompleted ? (
-          <button
-            onClick={handleDownload}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-            title="Download individual passport photo"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Download</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => onProcessSingle(photo)}
+              disabled={isItemProcessing || isProcessing}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+              title="Reprocess with current settings"
+            >
+              <RefreshCw className="w-3 h-3 text-blue-600" />
+              <span>Reprocess</span>
+            </button>
+            <button
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+              title="Download individual passport photo"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download</span>
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => onProcessSingle(photo)}
