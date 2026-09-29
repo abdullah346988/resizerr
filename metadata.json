@@ -1,0 +1,6 @@
+{
+  "name": "Passport Photo Bulk Resizer",
+  "description": "Bulk resize, crop, and compress photos into compliant passport-size dimensions with exact target KB limits, printable sheets, cut marks, and ZIP export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
